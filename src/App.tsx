@@ -13,29 +13,27 @@ function App() {
   const queryClient = useQueryClient();
   const [localTodos, setLocalTodos] = useState<Todo[]>([]);
   const [newTodoTitle, setNewTodoTitle] = useState('');
-  const [addTodo, setAddTodo] = useState(10)
+  const [addTodo, setAddTodo] = useState(10);
   const [error, setError] = useState('');
+  const [searchQuery, setSearchQuery] = useState(''); // New state for search query
 
   const { data: todos, isSuccess } = useQuery({
     queryKey: ['todos'],
     queryFn: getTodos,
   });
 
-  // Update local state when the query succeeds
   useEffect(() => {
     if (isSuccess && todos) {
-      // Initialize local state
-      setLocalTodos(todos.slice(0, addTodo)); 
+      setLocalTodos(todos.slice(0, addTodo));
     }
   }, [isSuccess, todos, addTodo]);
 
   const mutation = useMutation({
     mutationFn: createTodo,
     onSuccess: (newTodo) => {
-      // Update local state
-      setLocalTodos((prev) => [...prev, newTodo]); 
+      setLocalTodos((prev) => [...prev, newTodo]);
       queryClient.invalidateQueries({ queryKey: ['todos'] });
-      setNewTodoTitle(''); 
+      setNewTodoTitle('');
       setError('');
     },
   });
@@ -43,8 +41,7 @@ function App() {
   const del = useMutation({
     mutationFn: deleteTodo,
     onSuccess: (_, id) => {
-      // Update local state
-      setLocalTodos((prev) => prev.filter((todo) => todo.id !== id)); 
+      setLocalTodos((prev) => prev.filter((todo) => todo.id !== id));
       queryClient.invalidateQueries({ queryKey: ['todos'] });
     },
   });
@@ -52,7 +49,6 @@ function App() {
   const handleAddTodo = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTodoTitle.trim()) {
-      // Basic form validation
       setError('Title is required');
       return;
     }
@@ -62,12 +58,16 @@ function App() {
     });
   };
 
+  // Filter todos based on the search query
+  const filteredTodos = localTodos.filter((todo) =>
+    todo.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
-    <main className="flex flex-col gap-6 items-center list-none py-6 text-sm">
+    <main className="flex flex-col gap-6 items-center list-none py-6 text-sm font-medium">
       <h1 className="text-5xl font-bold mb-[2rem]">TODO APP</h1>
 
-      <form onSubmit={handleAddTodo} className="flex flex-wrap gap-4 justify-center  items-center">
+      <form onSubmit={handleAddTodo} className="flex flex-wrap gap-4 justify-center items-center">
         <input
           type="text"
           value={newTodoTitle}
@@ -84,9 +84,18 @@ function App() {
           <span className='relative z-10'>Add Todo</span>
         </button>
       </form>
-      
+
+      {/* Search input */}
+      <input
+        type="text"
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        placeholder="Search todos.."
+        className="p-2 px-6 bg-white outline-none w-[20rem] rounded-[2rem] text-xs"
+      />
+
       <div className="flex flex-wrap gap-6 justify-center p-4">
-        {localTodos.map((todo) => (
+        {filteredTodos.map((todo) => (
           <li
             className="p-3 px-6 bg-green-200 rounded-[2rem] flex items-center gap-4 hover:shadow-md cursor-default"
             key={todo.id}
@@ -101,13 +110,13 @@ function App() {
         ))}
       </div>
 
-        <button
-          className="px-6 py-2 relative overflow-hidden bg-white shadow-md rounded-[2rem] group"
-          onClick={()=> setAddTodo(addTodo + 10)}
-        >
-          <div className='absolute w-[100%] h-full bg-green-200 top-0 -left-[100%] group-hover:left-0 transition-all duration-300'/>
-          <span className='relative z-10'>Load more</span>
-        </button>
+      <button
+        className="px-6 py-2 relative overflow-hidden bg-white shadow-md rounded-[2rem] group"
+        onClick={() => setAddTodo(addTodo + 10)}
+      >
+        <div className='absolute w-[100%] h-full bg-green-200 top-0 -left-[100%] group-hover:left-0 transition-all duration-300'/>
+        <span className='relative z-10'>Load more</span>
+      </button>
     </main>
   );
 }
