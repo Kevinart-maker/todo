@@ -1,4 +1,7 @@
-# React + TypeScript + Vite
+# TODO APP ---- React + TypeScript + Vite + TANSTACK
+
+
+A little todo app with JsonPlaceholder Api to test CRUD api skills
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
